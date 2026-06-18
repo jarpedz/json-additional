@@ -105,8 +105,10 @@ main {
 
 .editors-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(450px, 1fr) minmax(450px, 1fr);
   gap: 1.5rem;
+  overflow-x: auto;
+  min-width: 0;
 }
 
 .json-editor {
@@ -128,16 +130,61 @@ main {
   font-size: 0.75rem;
 }
 
-.json-editor textarea {
-  height: 350px;
-  background: var(--bg-secondary);
+.codemirror-wrapper {
+  position: relative;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.json-codemirror {
   border: 1px solid var(--border);
   border-radius: 8px;
-  color: #e2e8f0;
+  background: var(--bg-secondary);
+}
+
+.json-codemirror .cm-editor {
+  height: 350px;
+  background: var(--bg-secondary);
   font-family: 'Fira Code', monospace;
+  max-height: 350px;
+}
+
+.json-codemirror .cm-editor.cm-focused {
+  outline: none;
+}
+
+.json-codemirror .cm-gutters {
+  background: rgba(255, 255, 255, 0.03);
+  border-right: 1px solid var(--border);
+}
+
+.json-codemirror .cm-lineNumbers .cm-gutterMarker {
+  color: #64748b;
+}
+
+.json-codemirror .cm-content {
+  color: #e2e8f0;
   font-size: 13px;
-  padding: 1rem;
-  resize: vertical;
+  line-height: 1.5rem;
+}
+
+.json-codemirror .cm-line {
+  transition: background-color 0.15s ease;
+}
+
+.json-codemirror .cm-highlighted-line {
+  background-color: rgba(34, 197, 94, 0.15) !important;
+  border-left: 3px solid #22c55e;
+  padding-left: 6px;
+}
+
+.highlight-info {
+  padding: 0.75rem;
+  font-size: 0.75rem;
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.1);
+  border-top: 1px solid rgba(34, 197, 94, 0.2);
+  border-radius: 0 0 8px 8px;
 }
 
 .json-editor textarea:focus {

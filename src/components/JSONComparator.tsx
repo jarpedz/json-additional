@@ -10,7 +10,7 @@ interface Diff {
 }
 
 export const JSONComparator: React.FC = () => {
-  const { targetJSON, sourceJSON, setTargetJSON, setSourceJSON, importKey, importAll } = useJSONStore();
+  const { targetJSON, sourceJSON, setTargetJSON, setSourceJSON, importKey, importAll, highlightedLines } = useJSONStore();
   const [targetError, setTargetError] = useState<string | null>(null);
   const [sourceError, setSourceError] = useState<string | null>(null);
 
@@ -57,6 +57,7 @@ export const JSONComparator: React.FC = () => {
           value={targetJSON} 
           onChange={setTargetJSON} 
           error={targetError}
+          highlightLines={highlightedLines}
         />
         <JSONEditor 
           label="Source JSON (New/Dev)" 

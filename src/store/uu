@@ -1,0 +1,141 @@
+-- Cleaned and consolidated SQL for EMAR/HOLD and OFF
+-- Parameter: {visitId}
+
+SELECT
+    z.orderItemPlanId,
+    z.day,
+    z.status,
+    z.kardexId,
+    z.emarDate,
+    z.emarTime,
+    z.emarTimeN,
+    z.name,
+    z.entryposition,
+    z.dateCode,
+    z.giveMed,
+    z.kadexNote,
+    z.numerate,
+    CONCAT(z.orderItemPlanId, z.emarDate, z.numerate) AS box
+FROM (
+    /* ================= EMAR/HOLD ================= */
+    SELECT
+        tk.orderItemPlanId,
+        tk.day,
+        tk.status,
+        tk.kardexId,
+
+        DATE_FORMAT(tk.time, '%d/%m/%Y') AS emarDate,
+        DATE_FORMAT(tk.time, '%H:%i') AS emarTime,
+        DATE_FORMAT(tk.time, '%H:%i') AS emarTimeN,
+
+        su.name,
+        su.entryposition,
+
+        DATE_FORMAT(tk.time, '%Y%m%d') AS dateCode,
+
+        tk.giveMed,
+
+        COALESCE(kn.kadexNote, '') AS kadexNote,
+
+        @row := IF(@grp = CONCAT(tk.orderItemPlanId, DATE(tk.time)), @row + 1, 1) AS numerate,
+        @grp := CONCAT(tk.orderItemPlanId, DATE(tk.time)) AS dummy
+
+    FROM (
+        SELECT tk.*
+        FROM trkardex tk
+        INNER JOIN trorderitemplan tp ON tp.orderItemPlanId = tk.orderItemPlanId
+        WHERE tp.visitId = '{visitId}'
+          AND tk.status IN ('EMAR', 'HOLD')
+        ORDER BY tk.orderItemPlanId, tk.time
+    ) tk
+
+    LEFT JOIN syuser su
+        ON su.username = CASE WHEN tk.emarBy IS NULL THEN tk.updatedBy ELSE tk.emarBy END
+
+    LEFT JOIN (
+        SELECT
+            tv.refId,
+            GROUP_CONCAT(tv.data ORDER BY tv.visitDetailId SEPARATOR '|~~|') AS kadexNote
+        FROM trvisitdetail tv
+        INNER JOIN trkardex tk2 ON tk2.kardexId = tv.refId
+        INNER JOIN trorderitemplan tp2 ON tp2.orderItemPlanId = tk2.orderItemPlanId
+        WHERE tp2.visitId = '{visitId}'
+          AND tv.module = 'kadexNote'
+          AND tv.active = 'Y'
+        GROUP BY tv.refId
+    ) kn ON kn.refId = tk.kardexId
+
+    CROSS JOIN (SELECT @row := 0, @grp := '') v
+
+    UNION ALL
+
+    /* ================= OFF ================= */
+    SELECT
+        tp.orderItemPlanId,
+        '1' AS day,
+        tp.status,
+        fk.kardexId,
+
+        DATE_FORMAT(tp.updateDate, '%d/%m/%Y') AS emarDate,
+        DATE_FORMAT(tp.updateDate, '%H:%i') AS emarTime,
+        DATE_FORMAT(tp.updateDate, '%H:%i') AS emarTimeN,
+
+        su.name,
+        su.entryposition,
+
+        DATE_FORMAT(tp.updateDate, '%Y%m%d') AS dateCode,
+
+        '' AS giveMed,
+
+        COALESCE(kn.kadexNote, '') AS kadexNote,
+
+        (COALESCE(mc.maxCnt, 0) + CASE WHEN tp.status = 'Off' THEN 1 ELSE 0 END) AS numerate,
+
+        CONCAT(
+            tp.orderItemPlanId,
+            DATE_FORMAT(tp.updateDate, '%d/%m/%Y'),
+            (COALESCE(mc.maxCnt, 0) + CASE WHEN tp.status = 'Off' THEN 1 ELSE 0 END)
+        ) AS box
+
+    FROM trorderitemplan tp
+
+    LEFT JOIN syuser su ON su.username = tp.updatedBy
+
+    LEFT JOIN (
+        SELECT orderItemPlanId, MIN(kardexId) AS kardexId
+        FROM trkardex
+        GROUP BY orderItemPlanId
+    ) fk ON fk.orderItemPlanId = tp.orderItemPlanId
+
+    LEFT JOIN (
+        SELECT x.orderItemPlanId, MAX(x.cnt) AS maxCnt
+        FROM (
+            SELECT tk.orderItemPlanId, DATE(tk.time) AS theDate, COUNT(*) AS cnt
+            FROM trkardex tk
+            INNER JOIN trorderitemplan tp3 ON tp3.orderItemPlanId = tk.orderItemPlanId
+            WHERE tp3.visitId = '{visitId}'
+              AND tk.status IN ('EMAR', 'HOLD')
+            GROUP BY tk.orderItemPlanId, DATE(tk.time)
+        ) x
+        GROUP BY x.orderItemPlanId
+    ) mc ON mc.orderItemPlanId = tp.orderItemPlanId
+
+    LEFT JOIN (
+        SELECT tv.refId, GROUP_CONCAT(tv.data ORDER BY tv.visitDetailId SEPARATOR '|~~|') AS kadexNote
+        FROM trvisitdetail tv
+        INNER JOIN trkardex tk4 ON tk4.kardexId = tv.refId
+        INNER JOIN trorderitemplan tp4 ON tp4.orderItemPlanId = tk4.orderItemPlanId
+        WHERE tp4.visitId = '{visitId}'
+          AND tv.module = 'kadexNote'
+          AND tv.active = 'Y'
+        GROUP BY tv.refId
+    ) kn ON kn.refId = fk.kardexId
+
+    WHERE tp.visitId = '{visitId}'
+      AND tp.status = 'Off'
+
+) z
+ORDER BY
+    z.orderItemPlanId,
+    STR_TO_DATE(z.emarDate, '%d/%m/%Y'),
+    z.numerate;
