@@ -143,10 +143,10 @@ main {
 }
 
 .json-codemirror .cm-editor {
-  height: 350px;
+  height: 500px;
   background: var(--bg-secondary);
   font-family: 'Fira Code', monospace;
-  max-height: 350px;
+  max-height: 500px;
 }
 
 .json-codemirror .cm-editor.cm-focused {
