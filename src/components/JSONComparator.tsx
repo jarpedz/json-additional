@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo } from 'react';
 import { useJSONStore } from '../store/useJSONStore';
 import { JSONEditor } from './JSONEditor';
 import { HistoryPanel } from './HistoryPanel';
@@ -6,47 +6,62 @@ import { ChevronRight, Plus, Check } from 'lucide-react';
 
 interface Diff {
   path: string[];
-  value: any;
+  value: unknown;
+}
+
+function findMissingKeys(target: Record<string, unknown>, source: Record<string, unknown>, path: string[] = []): Diff[] {
+  let diffs: Diff[] = [];
+  
+  if (source && typeof source === 'object' && !Array.isArray(source)) {
+    for (const key in source) {
+      const currentPath = [...path, key];
+      if (!(key in target)) {
+        diffs.push({ path: currentPath, value: source[key] });
+      } else if (typeof source[key] === 'object' && source[key] !== null) {
+        const nextTarget = (target[key] && typeof target[key] === 'object') ? (target[key] as Record<string, unknown>) : {};
+        const nextSource = source[key] as Record<string, unknown>;
+        diffs = [...diffs, ...findMissingKeys(nextTarget, nextSource, currentPath)];
+      }
+    }
+  }
+  
+  return diffs;
 }
 
 export const JSONComparator: React.FC = () => {
   const { targetJSON, sourceJSON, setTargetJSON, setSourceJSON, importKey, importAll, highlightedLines } = useJSONStore();
-  const [targetError, setTargetError] = useState<string | null>(null);
-  const [sourceError, setSourceError] = useState<string | null>(null);
 
-  const findMissingKeys = (target: any, source: any, path: string[] = []): Diff[] => {
-    let diffs: Diff[] = [];
-    
-    if (source && typeof source === 'object' && !Array.isArray(source)) {
-      for (const key in source) {
-        const currentPath = [...path, key];
-        if (!(key in target)) {
-          diffs.push({ path: currentPath, value: source[key] });
-        } else if (typeof source[key] === 'object' && source[key] !== null) {
-          diffs = [...diffs, ...findMissingKeys(target[key] || {}, source[key], currentPath)];
-        }
+  const { diffs, targetError, sourceError } = useMemo(() => {
+    let target: Record<string, unknown> | null = null;
+    let source: Record<string, unknown> | null = null;
+    let targetErr: string | null = null;
+    let sourceErr: string | null = null;
+
+    if (targetJSON.trim() !== '') {
+      try {
+        target = JSON.parse(targetJSON);
+      } catch {
+        targetErr = 'Invalid JSON';
       }
     }
-    
-    return diffs;
-  };
 
-  const diffs = useMemo(() => {
-    try {
-      const target = JSON.parse(targetJSON);
-      setTargetError(null);
-      const source = JSON.parse(sourceJSON);
-      setSourceError(null);
-      return findMissingKeys(target, source);
-    } catch (e: any) {
-      if (targetJSON.trim() !== '') {
-        try { JSON.parse(targetJSON); } catch (e) { setTargetError('Invalid JSON'); }
+    if (sourceJSON.trim() !== '') {
+      try {
+        source = JSON.parse(sourceJSON);
+      } catch {
+        sourceErr = 'Invalid JSON';
       }
-      if (sourceJSON.trim() !== '') {
-        try { JSON.parse(sourceJSON); } catch (e) { setSourceError('Invalid JSON'); }
-      }
-      return [];
     }
+
+    const missingKeys = (!targetErr && !sourceErr && target && source)
+      ? findMissingKeys(target, source)
+      : [];
+
+    return {
+      diffs: missingKeys,
+      targetError: targetErr,
+      sourceError: sourceErr,
+    };
   }, [targetJSON, sourceJSON]);
 
   return (
