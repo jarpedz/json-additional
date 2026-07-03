@@ -1,0 +1,1 @@
+alter table tb_queries ADD query_type text not null

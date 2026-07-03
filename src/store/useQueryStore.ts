@@ -6,10 +6,13 @@ interface QueryState {
   id: string;
   title: string;
   query: string;
+  hos_use: string;
+  query_type: string;
   create_by: string;
+  create_at: string;
 }
 interface QueryList {
-  queryList: QueryState[];
+  queryList: QueryState[] | [];
   isError: boolean;
   isLoading: boolean;
   loadQuery: () => Promise<void>;
@@ -17,7 +20,7 @@ interface QueryList {
   editQuery: (id: string) => void;
 }
 
-export const queryStore = create<QueryList>((set, get) => ({
+export const useQueryStore = create<QueryList>((set, get) => ({
   queryList: [],
   isError: false,
   isLoading: false,
@@ -35,7 +38,8 @@ export const queryStore = create<QueryList>((set, get) => ({
       }
 
       set({
-        queryList: data as [],
+        queryList: data || [],
+        isLoading: false,
       });
     } catch (error: any) {
       console.log(error);

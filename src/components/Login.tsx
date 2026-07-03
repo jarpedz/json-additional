@@ -1,33 +1,22 @@
-import React, { useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuthStore } from '../store/useAuthStore';
-import { LogIn } from 'lucide-react';
+import React, { useState } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuthStore } from "../store/useAuthStore";
+import { LogIn } from "lucide-react";
 
 export const Login: React.FC = () => {
-  const { signIn , loading , user } = useAuthStore();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { signIn, loading, user } = useAuthStore();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
-   const result = await signIn(email , password)
+    const result = await signIn(email, password);
 
-   console.log(result)
+    console.log(result);
 
-    // const { data, error } = await supabase.auth.signInWithPassword({
-    //   email,
-    //   password,
-    // });
-
-    // if (error) {
-    //   setError(error.message);
-    // } else {
-    //   console.log(data.user)
-    //   setUser(data.user);
-    // }
   };
 
   return (
@@ -60,7 +49,7 @@ export const Login: React.FC = () => {
           />
         </div>
         <button type="submit" disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign In'}
+          {loading ? "Signing in..." : "Sign In"}
         </button>
       </form>
     </div>

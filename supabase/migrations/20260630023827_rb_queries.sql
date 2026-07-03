@@ -25,6 +25,7 @@ CREATE TABLE tb_queries (
     title TEXT NOT NULL,
     query TEXT NOT NULL,
     hos_use TEXT,
+    query_type TEXT NOT NULL,
     create_by TEXT NOT NULL DEFAULT 'system',
     create_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- แก้ไขจาก datatime timestamp(now())
     update_by TEXT,                                  -- แก้ไขจาก update_ay เป็น update_by

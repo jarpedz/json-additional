@@ -21,6 +21,21 @@ header h1 {
   color: var(--primary);
 }
 
+.top-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.top-bar-left .badge {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
 .user-info {
   display: flex;
   align-items: center;
@@ -463,7 +478,7 @@ main {
   border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   padding: 0 2rem;
   background-color: var(--bg);
 }
@@ -1008,4 +1023,198 @@ main {
   margin-top: 1rem;
   text-decoration: none;
   font-size: 0.875rem;
+}
+/* Style สำหรับ Tab คัดกรองประเภท (Report / Utilities) */
+.type-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 1.5rem;
+  padding-bottom: 2px;
+}
+
+.type-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 20px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -4px;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.type-tabs button:hover {
+  color: var(--text);
+}
+
+.type-tabs button.active, 
+.type-tabs button[style*="font-weight: 600"] { /* ดักจับเคสกรณียังใช้ inline style คุม */
+  color: var(--primary) !important;
+  border-bottom: 2px solid var(--primary) !important;
+  font-weight: 600;
+}
+
+/* รายการ Accordion List */
+.accordion-list {
+  display: flex;
+  flex-direction: column;
+  /* gap: 0.75rem; */
+}
+
+.accordion-item {
+  border: 1px solid var(--border) !important;
+  border-radius: 8px !important;
+  background: var(--bg-secondary) !important;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.accordion-item:hover {
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* หัวข้อ Accordion Header */
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.25rem !important;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.01) !important;
+  user-select: none;
+  transition: background-color 0.15s ease;
+}
+
+.accordion-header:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* แผงตัวควบคุมและข้อมูลฝั่งซ้ายของ Header */
+.accordion-header h3 {
+  color: var(--text) !important;
+  font-size: 1.05rem !important;
+}
+
+/* ตกแต่ง Badge ประเภทเพิ่มเติม */
+.type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: rgba(59, 130, 246, 0.1) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 9999px;
+  font-weight: 500;
+}
+
+/* ปุ่ม Copy คิวรี */
+.btn-action-copy {
+  padding: 6px 12px !important;
+  border-radius: 6px !important;
+  border: 1px solid var(--border) !important;
+  background: var(--bg) !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.15s ease-in-out;
+}
+
+.btn-action-copy:hover {
+  border-color: var(--primary) !important;
+  color: var(--text) !important;
+  background: rgba(59, 130, 246, 0.05) !important;
+}
+
+/* สเตตัสเมื่อกด Copy สำเร็จ (Copied!) */
+.btn-action-copy[title="Copied!"], 
+.btn-action-copy[style*="background: rgb(220, 252, 231)"] {
+  background: rgba(34, 197, 94, 0.15) !important;
+  color: #4ade80 !important;
+  border-color: rgba(34, 197, 94, 0.4) !important;
+}
+
+/* เนื้อหาภายในเนื้อผืน Accordion Body */
+.accordion-body {
+  padding: 1.25rem !important;
+  border-top: 1px solid var(--border) !important;
+  background: rgba(0, 0, 0, 0.15);
+  animation: fadeInAccordion 0.2s ease-out;
+}
+
+/* ขยายความสูงหน้าต่างโค้ดเมื่อเปิด Accordion ให้ยาวขึ้นเต็มตา */
+.accordion-body .sql-preview {
+  max-height: 400px; /* ขยายจากเดิม 150px เป็น 400px เพื่อให้อ่าน SQL ยาวๆ ได้ง่ายขึ้น */
+  background: #0b0f19 !important; /* ปรับพื้นหลังให้มืดสนิทขับสี Syntax โค้ด */
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+}
+
+.accordion-body .sql-preview code {
+  font-size: 0.8rem !important;
+  line-height: 1.45rem;
+}
+
+/* Animation ตัวช่วยดันเนื้อโค้ดให้เปิดสไลด์เนียนขึ้น */
+@keyframes fadeInAccordion {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ==========================================
+   🎨 สไตล์เพิ่มเติมสำหรับ Form Group Select
+   ========================================== */
+
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  background: var(--bg); /* ใช้สีพื้นหลังเหมือนช่อง input */
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.9rem;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  
+  /* เพิ่มเทคนิคทำให้ปุ่ม Dropdown เนียนขึ้นสำหรับสไตล์ Modern */
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'></polyline></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px; /* เว้นที่ให้ลูกศรขวา */
+}
+
+/* เมื่อยูสเซอร์กดคลิกเลือกช่อง (Focus) */
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); /* แสงเงาสีฟ้าจางๆ รอบวง */
+}
+
+/* สำหรับตัวเลือกด้านในโครงสร้าง Dropdown */
+.form-group select option {
+  background: var(--bg-secondary); /* สีกล่องเลือกไม่ให้สว่างจ้าแย่งสายตา */
+  color: var(--text);
+  padding: 10px;
+}
+
+/* ปรับแต่งกรณีกล่อง Form โดน Disabled หรือห้ามกด */
+.form-group select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: rgba(255, 255, 255, 0.02);
 }

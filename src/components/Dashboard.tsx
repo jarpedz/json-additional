@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuthStore } from '../store/useAuthStore';
-import { Database, FileText, GitCompare, User } from 'lucide-react';
+import React, { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuthStore } from "../store/useAuthStore";
+import { Database, FileText, GitCompare, User } from "lucide-react";
 
 export const Dashboard: React.FC = () => {
   const { user } = useAuthStore();
@@ -15,14 +15,17 @@ export const Dashboard: React.FC = () => {
       setLoading(true);
       try {
         const [queriesRes, notesRes] = await Promise.all([
-          supabase.from('tb_queries').select('*', { count: 'exact', head: true }),
-          supabase.from('tb_note').select('*', { count: 'exact', head: true }),
+          supabase
+            .from("tb_queries")
+            .select("*", { count: "exact", head: true }),
+          supabase.from("tb_note").select("*", { count: "exact", head: true }),
         ]);
 
         setQueriesCount(queriesRes.count);
         setNotesCount(notesRes.count);
+        console.log(role.split(",").map((r: string) => r.trim()));
       } catch (err) {
-        console.error('Error fetching dashboard metrics:', err);
+        console.error("Error fetching dashboard metrics:", err);
       } finally {
         setLoading(false);
       }
@@ -31,8 +34,14 @@ export const Dashboard: React.FC = () => {
     fetchCounts();
   }, []);
 
-  const displayRole = role || 'loading...';
-  const roleClass = role === 'deployer' ? 'role-deployer' : 'role-support';
+  const displayRole = role || "loading...";
+  // const roleClass = role === "deployer" ? "role-deployer" : "role-support";
+
+  // const displayisRole = (role: string) => {
+  //   const isRole = JSON.parse(role)
+  //   console.log(isRole)
+  //   return isRole.join(', ');
+  // }
 
   return (
     <div className="dashboard-container">
@@ -49,7 +58,15 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="role-tag-container">
             <span>Your System Role:</span>
-            <span className={`badge-role ${roleClass}`}>{displayRole}</span>
+            {displayRole.split().map((r: string, index: number) => (
+              <span
+                key={index}
+                className={`badge-role ${r === "deploy" ? "role-deployer" : "role-support"}`}
+              >
+                {r}
+              </span>
+            ))}
+            {/* <span className={`badge-role ${roleClass}`}>{displayRole.split(",").join(", ")}</span> */}
           </div>
         </div>
       </div>
@@ -63,7 +80,11 @@ export const Dashboard: React.FC = () => {
             <span className="metric-title">Saved Queries</span>
           </div>
           <div className="metric-value">
-            {loading ? <span className="spinner">...</span> : queriesCount ?? 0}
+            {loading ? (
+              <span className="spinner">...</span>
+            ) : (
+              (queriesCount ?? 0)
+            )}
           </div>
           <p className="metric-desc">Total reusable SQL queries configured.</p>
           <a href="#query-utilities" className="metric-action-btn">
@@ -79,7 +100,7 @@ export const Dashboard: React.FC = () => {
             <span className="metric-title">Deployment Notes</span>
           </div>
           <div className="metric-value">
-            {loading ? <span className="spinner">...</span> : notesCount ?? 0}
+            {loading ? <span className="spinner">...</span> : (notesCount ?? 0)}
           </div>
           <p className="metric-desc">Total deployment logs & notes recorded.</p>
           <a href="#notes" className="metric-action-btn">
@@ -97,13 +118,17 @@ export const Dashboard: React.FC = () => {
           <div className="metric-value">
             <GitCompare size={28} style={{ opacity: 0.8 }} />
           </div>
-          <p className="metric-desc">Compare environment configs side-by-side.</p>
-          {role === 'deployer' ? (
+          <p className="metric-desc">
+            Compare environment configs side-by-side.
+          </p>
+          {role === "deployer" ? (
             <a href="#json-comparator" className="metric-action-btn">
               Open Comparator →
             </a>
           ) : (
-            <span className="metric-action-locked">🔒 Deployer Role Required</span>
+            <span className="metric-action-locked">
+              🔒 Deployer Role Required
+            </span>
           )}
         </div>
       </div>
@@ -119,7 +144,7 @@ export const Dashboard: React.FC = () => {
             <h4>Log Notes</h4>
             <p>Write notes, descriptions, and updates for deployments.</p>
           </a>
-          {role === 'deployer' && (
+          {role === "deployer" && (
             <a href="#json-comparator" className="shortcut-item">
               <h4>JSON Config Comparator</h4>
               <p>Compare config-prd.json vs local configuration keys.</p>
