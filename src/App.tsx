@@ -1,4 +1,4 @@
-import { use, useEffect, useState } from "react";
+import {  useEffect, useState } from "react";
 import { supabase } from "./lib/supabase";
 import { useAuthStore } from "./store/useAuthStore";
 import { Login } from "./components/Login";
@@ -141,7 +141,7 @@ function App() {
   const hasRole = (target: string) => {
     if (!role) return false;
 
-    const rolesArray = role.split(",").map((r) => r.trim());
+    const rolesArray = role.split(",").map((r: string) => r.trim());
 
     return rolesArray.includes(target);
   };

@@ -20,7 +20,7 @@ interface QueryList {
   editQuery: (id: string) => void;
 }
 
-export const useQueryStore = create<QueryList>((set, get) => ({
+export const useQueryStore = create<QueryList>((set) => ({
   queryList: [],
   isError: false,
   isLoading: false,
@@ -50,9 +50,9 @@ export const useQueryStore = create<QueryList>((set, get) => ({
     }
   },
   async addQuery() {
-    
+
   },
-  editQuery(id : string) {
+  editQuery() {
 
   },
 }));

@@ -1,5 +1,4 @@
 import { create } from "zustand";
-import type { User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase";
 
 interface AuthState {
@@ -14,7 +13,7 @@ interface AuthState {
   initAuthListener: () => () => void; // 🌟 เพิ่มฟังก์ชันสำหรับเปิดระบบดักฟัง Session
 }
 
-export const useAuthStore = create<AuthState>((set, get) => ({
+export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   loading: true,
   message: null,

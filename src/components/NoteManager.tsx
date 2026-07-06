@@ -12,8 +12,6 @@ export const NoteManager: React.FC = () => {
     noteList,
     loadNote,
     isLoading,
-    isError,
-    isMessage,
     addNote,
     editNote,
   } = useNoteStore();

@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import { supabase } from "../lib/supabase";
 import { useAuthStore } from "../store/useAuthStore";
 import { LogIn } from "lucide-react";
 
 export const Login: React.FC = () => {
-  const { signIn, loading, user } = useAuthStore();
+  const { signIn, loading } = useAuthStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
