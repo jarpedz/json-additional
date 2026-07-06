@@ -26,3 +26,13 @@ export interface QueryList {
   addQuery: () => void;
   editQuery: (id: string) => void;
 }
+
+export interface NoteItem {
+  id?: string;
+  note: string;
+  description: string;
+  create_by?: string;
+  create_at?: string;
+  update_by?: string;
+  update_at?: string;
+}

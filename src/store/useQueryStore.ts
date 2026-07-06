@@ -49,6 +49,10 @@ export const useQueryStore = create<QueryList>((set, get) => ({
       });
     }
   },
-  addQuery() {},
-  editQuery(id) {},
+  async addQuery() {
+    
+  },
+  editQuery(id : string) {
+
+  },
 }));

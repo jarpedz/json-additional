@@ -6,6 +6,7 @@ interface AuthState {
   user: any | null;
   loading: boolean;
   initialized: boolean;
+  message: string | null;
   setUser: (user: any | null) => void; // ปรับเป็น any เผื่อรองรับ profileData จากตาราง tb_users
   setInitialized: (initialized: boolean) => void;
   signIn: (email: string, password: string) => Promise<void>;
@@ -16,6 +17,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
   loading: true,
+  message: null,
   initialized: false,
   setUser: (user) => set({ user }),
   setInitialized: (initialized) => set({ initialized }),
@@ -23,34 +25,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // 🌟 ฟังก์ชันดักฟังเหตุการณ์ Auth (จับเคส Session หมดอายุ / Token Expired)
   initAuthListener: () => {
     // ดักฟังทุกลักษณะเหตุการณ์ (SIGNED_IN, SIGNED_OUT, TOKEN_REFRESHED)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log(`Auth Event Triggered: ${event}`);
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log(`Auth Event Triggered: ${event}`);
 
-        // เคสที่ 1: ไม่มี Session แล้ว (เช่น หมดอายุ หรือ โดนสั่งเตะออก)
-        if (!session) {
-          set({ user: null, loading: false, initialized: true });
-          return;
-        }
+      // เคสที่ 1: ไม่มี Session แล้ว (เช่น หมดอายุ หรือ โดนสั่งเตะออก)
+      if (!session) {
+        set({ user: null, loading: false, initialized: true });
+        return;
+      }
 
-        // เคสที่ 2: มีการรีเฟรช Token หรือ ล็อกอินใหม่ ให้คอยดึงข้อมูล Profile ล่าสุด
-        if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          try {
-            const { data: profile, error } = await supabase
-              .from("tb_users")
-              .select("*")
-              .eq("id", session.user.id)
-              .single();
+      // เคสที่ 2: มีการรีเฟรช Token หรือ ล็อกอินใหม่ ให้คอยดึงข้อมูล Profile ล่าสุด
+      if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        try {
+          const { data: profile, error } = await supabase
+            .from("tb_users")
+            .select("*")
+            .eq("id", session.user.id)
+            .single();
 
-            if (error) throw error;
-            set({ user: profile, loading: false, initialized: true });
-          } catch (err) {
-            console.error("Error fetching profile on auth change:", err);
-            set({ user: null, loading: false, initialized: true });
-          }
+          if (error) throw error;
+          set({ user: profile, loading: false, initialized: true });
+        } catch (err) {
+          set({
+            user: null,
+            loading: false,
+            initialized: true,
+            message: "Failed to fetch user profile." + err,
+          });
         }
       }
-    );
+    });
 
     // ส่งฟังก์ชัน unsubscribe คืนกลับไปเผื่อใช้เคลียร์หน่วยความจำใน useEffect
     return () => {
@@ -83,7 +89,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         loading: false,
       });
     } catch (error: any) {
-      console.error("Login failed:", error.message);
       set({ loading: false }); // อย่าลืมปิดโหลดเมื่อล็อกอินพัง
       throw error; // throw ออกไปให้หน้า UI แสดงแจ้งเตือนยูสเซอร์
     }

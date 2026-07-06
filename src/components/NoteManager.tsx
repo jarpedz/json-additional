@@ -1,64 +1,56 @@
-import React, { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import { useAuthStore } from '../store/useAuthStore';
-import { Plus, Search, Edit2, Trash2, X, FileText } from 'lucide-react';
-
-interface NoteItem {
-  id: string;
-  note: string;
-  description: string;
-  create_by: string;
-  create_at: string;
-}
+import React, { useEffect, useState } from "react";
+import { supabase } from "../lib/supabase";
+import { useAuthStore } from "../store/useAuthStore";
+import { Plus, Search, Edit2, Trash2, X, FileText } from "lucide-react";
+import type { NoteItem } from "../types/types";
+import { useNoteStore } from "../store/useNoteStore";
 
 export const NoteManager: React.FC = () => {
+  // State from Zustand Stores
   const { user } = useAuthStore();
-  const [notes, setNotes] = useState<NoteItem[]>([]);
-  const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const {
+    noteList,
+    loadNote,
+    isLoading,
+    isError,
+    isMessage,
+    addNote,
+    editNote,
+  } = useNoteStore();
+
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
 
   // Form State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [formNote, setFormNote] = useState('');
-  const [formDescription, setFormDescription] = useState('');
-
-  const fetchNotes = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error } = await supabase
-        .from('tb_note')
-        .select('*')
-        .order('create_at', { ascending: false });
-
-      if (error) throw error;
-      setNotes(data || []);
-    } catch (err: any) {
-      console.error('Error fetching notes:', err);
-      setError(err.message || 'Failed to load notes');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [formNote, setFormNote] = useState<NoteItem>({
+    note: "",
+    description: "",
+  });
 
   useEffect(() => {
-    fetchNotes();
+    loadNote();
   }, []);
 
   const openAddModal = () => {
     setEditingId(null);
-    setFormNote('');
-    setFormDescription('');
     setError(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (item: NoteItem) => {
+    console.log("Editing Note Item:", item);
+    if (!item.id) {
+      setError("Invalid note ID for editing.");
+      return;
+    }
     setEditingId(item.id);
-    setFormNote(item.note);
-    setFormDescription(item.description);
+
+    setFormNote({
+      note: item.note,
+      description: item.description,
+    });
     setError(null);
     setIsModalOpen(true);
   };
@@ -70,69 +62,64 @@ export const NoteManager: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const { note, description } = formNote;
     setError(null);
 
-    if (!formNote.trim() || !formDescription.trim()) {
-      setError('Title/Note and Description fields are required.');
+    if (!note.trim() || !description.trim()) {
+      setError("Title/Note and Description fields are required.");
       return;
     }
 
     try {
       if (editingId) {
         // Update
-        const { error } = await supabase
-          .from('tb_note')
-          .update({
-            note: formNote,
-            description: formDescription,
-            update_by: user?.email || 'system',
-            update_at: new Date().toISOString()
-          })
-          .eq('id', editingId);
+        editNote({
+          id: editingId,
+          note: note,
+          description: description,
+          update_by: user?.username || "system",
+        });
 
-        if (error) throw error;
+        loadNote();
+
       } else {
         // Insert
-        const { error } = await supabase
-          .from('tb_note')
-          .insert({
-            note: formNote,
-            description: formDescription,
-            create_by: user?.email || 'system',
-            create_at: new Date().toISOString()
-          });
+        addNote({
+          note: note,
+          description: description,
+          create_by: user?.username || "system",
+        });
 
-        if (error) throw error;
+        // if (error) throw error;
+        loadNote();
       }
 
       closeModal();
-      fetchNotes();
     } catch (err: any) {
-      console.error('Error saving note:', err);
-      setError(err.message || 'Failed to save note');
+      console.error("Error saving note:", err);
+      setError(err.message || "Failed to save note");
     }
+
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this note?')) return;
+    if (!confirm("Are you sure you want to delete this note?")) return;
 
     try {
-      const { error } = await supabase
-        .from('tb_note')
-        .delete()
-        .eq('id', id);
+      const { error } = await supabase.from("tb_note").delete().eq("id", id);
 
       if (error) throw error;
-      fetchNotes();
+      loadNote();
     } catch (err: any) {
-      console.error('Error deleting note:', err);
-      alert(err.message || 'Failed to delete note');
+      console.error("Error deleting note:", err);
+      alert(err.message || "Failed to delete note");
     }
   };
 
-  const filteredNotes = notes.filter(item => 
-    item.note.toLowerCase().includes(search.toLowerCase()) ||
-    item.description.toLowerCase().includes(search.toLowerCase())
+  const filteredNotes = noteList.filter(
+    (item) =>
+      item.note.toLowerCase().includes(search.toLowerCase()) ||
+      item.description.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -140,7 +127,10 @@ export const NoteManager: React.FC = () => {
       <div className="manager-header">
         <div className="title-desc">
           <h2>Deployment Notes</h2>
-          <p>Record notes, descriptions, and updates for your projects and deployments.</p>
+          <p>
+            Record notes, descriptions, and updates for your projects and
+            deployments.
+          </p>
         </div>
         <button onClick={openAddModal} className="btn-primary">
           <Plus size={16} /> Add Note
@@ -159,7 +149,7 @@ export const NoteManager: React.FC = () => {
         </div>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="loading">Loading notes...</div>
       ) : filteredNotes.length === 0 ? (
         <div className="empty-state">
@@ -168,17 +158,25 @@ export const NoteManager: React.FC = () => {
         </div>
       ) : (
         <div className="items-grid">
-          {filteredNotes.map((item) => (
+          {filteredNotes.map((item: any) => (
             <div key={item.id} className="item-card note-card">
               <div className="card-header">
                 <div>
                   <h3 className="card-title">{item.note}</h3>
                 </div>
                 <div className="card-actions">
-                  <button onClick={() => openEditModal(item)} className="btn-action-edit" title="Edit">
+                  <button
+                    onClick={() => openEditModal(item)}
+                    className="btn-action-edit"
+                    title="Edit"
+                  >
                     <Edit2 size={16} />
                   </button>
-                  <button onClick={() => handleDelete(item.id)} className="btn-action-delete" title="Delete">
+                  <button
+                    onClick={() => handleDelete(item.id)}
+                    className="btn-action-delete"
+                    title="Delete"
+                  >
                     <Trash2 size={16} />
                   </button>
                 </div>
@@ -200,7 +198,7 @@ export const NoteManager: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content">
             <div className="modal-header">
-              <h3>{editingId ? 'Edit Note' : 'Add New Note'}</h3>
+              <h3>{editingId ? "Edit Note" : "Add New Note"}</h3>
               <button onClick={closeModal} className="btn-close">
                 <X size={20} />
               </button>
@@ -211,8 +209,10 @@ export const NoteManager: React.FC = () => {
                 <label>Note Title / Summary</label>
                 <input
                   type="text"
-                  value={formNote}
-                  onChange={(e) => setFormNote(e.target.value)}
+                  value={formNote.note}
+                  onChange={(e) =>
+                    setFormNote({ ...formNote, note: e.target.value })
+                  }
                   placeholder="e.g. Config parameters changed in HOS-02"
                   required
                 />
@@ -220,19 +220,25 @@ export const NoteManager: React.FC = () => {
               <div className="form-group">
                 <label>Detailed Description</label>
                 <textarea
-                  value={formDescription}
-                  onChange={(e) => setFormDescription(e.target.value)}
+                  value={formNote.description}
+                  onChange={(e) =>
+                    setFormNote({ ...formNote, description: e.target.value })
+                  }
                   placeholder="e.g. Changed the db_pool size and updated the host url due to server migration..."
                   rows={8}
                   required
                 />
               </div>
               <div className="modal-footer">
-                <button type="button" onClick={closeModal} className="btn-secondary">
+                <button
+                  type="button"
+                  onClick={closeModal}
+                  className="btn-secondary"
+                >
                   Cancel
                 </button>
                 <button type="submit" className="btn-primary">
-                  {editingId ? 'Update Note' : 'Add Note'}
+                  {editingId ? "Update Note" : "Add Note"}
                 </button>
               </div>
             </form>

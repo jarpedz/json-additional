@@ -122,7 +122,7 @@ export const QueryUtilities: React.FC = () => {
         if (error) throw error;
       } else {
         // Insert (จะผูก query_type ตามแท็บที่เปิดอยู่ตอนกดเพิ่มข้อมูล)
-        
+
         const { error } = await supabase.from("tb_queries").insert({
           title: title,
           query: query,
@@ -165,7 +165,8 @@ export const QueryUtilities: React.FC = () => {
     const matchesTab = item.query_type === activeTab;
     const matchesSearch =
       item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.query.toLowerCase().includes(search.toLowerCase());
+      item.query.toLowerCase().includes(search.toLowerCase()) || 
+      item.hos_use?.toLowerCase().includes(search.toLowerCase());
     const matchesHospital =
       filterHospital === "" ||
       (item.hos_use &&
@@ -301,139 +302,148 @@ export const QueryUtilities: React.FC = () => {
           </p>
         </div>
       ) : (
-        <div className="accordion-list">
-          {filteredQueries.map((item) => {
-            const isExpanded = expandedId === item.id;
-            const isCopied = copiedId === item.id;
+        <div style={{ maxHeight: "55vh", overflowY: "scroll" }}>
+          <div className="accordion-list">
+            {filteredQueries.map((item) => {
+              const isExpanded = expandedId === item.id;
+              const isCopied = copiedId === item.id;
 
-            return (
-              <div
-                key={item.id}
-                className={`accordion-item ${isExpanded ? "active" : ""}`}
-                style={{
-                  border: "1px solid #e2e8f0",
-                  borderRadius: "8px",
-                  marginBottom: "12px",
-                  background: "#fff",
-                  overflow: "hidden",
-                }}
-              >
-                {/* Accordion Header */}
+              return (
                 <div
-                  className="accordion-header"
-                  onClick={() => toggleAccordion(item.id)}
+                  key={item.id}
+                  className={`accordion-item ${isExpanded ? "active" : ""}`}
                   style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    padding: "16px",
-                    cursor: "pointer",
-                    background: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "8px",
+                    marginBottom: "12px",
+                    background: "#fff",
+                    overflow: "hidden",
                   }}
                 >
+                  {/* Accordion Header */}
                   <div
+                    className="accordion-header"
+                    onClick={() => toggleAccordion(item.id)}
                     style={{
                       display: "flex",
+                      justifyContent: "space-between",
                       alignItems: "center",
-                      gap: "12px",
-                      flexWrap: "wrap",
+                      padding: "16px",
+                      cursor: "pointer",
+                      background: "#f8fafc",
                     }}
                   >
-                    {isExpanded ? (
-                      <ChevronUp size={18} />
-                    ) : (
-                      <ChevronDown size={18} />
-                    )}
-                    <h3
-                      style={{ margin: 0, fontSize: "1.1rem", fontWeight: 600 }}
-                    >
-                      {item.title}
-                    </h3>
-                    {item.hos_use && (
-                      <span className="hospital-badge">{item.hos_use}</span>
-                    )}
-                  </div>
-
-                  <div
-                    className="card-actions"
-                    style={{ display: "flex", gap: "8px" }}
-                  >
-                    <button
-                      onClick={(e) => handleCopy(e, item.id, item.query)}
-                      className="btn-action-copy"
+                    <div
                       style={{
-                        padding: "6px 12px",
-                        borderRadius: "4px",
-                        border: "1px solid #cbd5e1",
-                        background: isCopied ? "#dcfce7" : "#fff",
-                        color: isCopied ? "#15803d" : "#64748b",
                         display: "flex",
                         alignItems: "center",
-                        gap: "4px",
-                        fontSize: "0.85rem",
+                        gap: "12px",
+                        flexWrap: "wrap",
                       }}
                     >
-                      {isCopied ? <Check size={14} /> : <Copy size={14} />}
-                      {isCopied ? "Copied!" : "Copy"}
-                    </button>
-                    <button
-                      onClick={(e) => openEditModal(e, item)}
-                      className="btn-action-edit"
-                      title="Edit"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button
-                      onClick={(e) => handleDelete(e, item.id)}
-                      className="btn-action-delete"
-                      title="Delete"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Accordion Body */}
-                {isExpanded && (
-                  <div
-                    className="accordion-body"
-                    style={{ padding: "16px", borderTop: "1px solid #e2e8f0" }}
-                  >
-                    <div className="card-body">
-                      <pre
-                        className="sql-preview"
+                      {isExpanded ? (
+                        <ChevronUp size={18} />
+                      ) : (
+                        <ChevronDown size={18} />
+                      )}
+                      <h3
                         style={{
-                          background: "#0f172a",
-                          color: "#f8fafc",
-                          padding: "16px",
-                          borderRadius: "6px",
-                          overflowX: "auto",
                           margin: 0,
+                          fontSize: "1.1rem",
+                          fontWeight: 600,
                         }}
                       >
-                        <code>{item.query}</code>
-                      </pre>
+                        {item.title}
+                      </h3>
+                      {item.hos_use && (
+                        <span className="hospital-badge">{item.hos_use}</span>
+                      )}
                     </div>
+
                     <div
-                      className="card-footer"
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginTop: "12px",
-                        fontSize: "0.85rem",
-                        color: "#64748b",
-                      }}
+                      className="card-actions"
+                      style={{ display: "flex", gap: "8px" }}
                     >
-                      <span>By: {item.create_by}</span>
-                      <span>
-                        {new Date(item.create_at).toLocaleDateString()}
-                      </span>
+                      <button
+                        onClick={(e) => handleCopy(e, item.id, item.query)}
+                        className="btn-action-copy"
+                        style={{
+                          padding: "6px 12px",
+                          borderRadius: "4px",
+                          border: "1px solid #cbd5e1",
+                          background: isCopied ? "#dcfce7" : "#fff",
+                          color: isCopied ? "#15803d" : "#64748b",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "4px",
+                          fontSize: "0.85rem",
+                        }}
+                      >
+                        {isCopied ? <Check size={14} /> : <Copy size={14} />}
+                        {isCopied ? "Copied!" : "Copy"}
+                      </button>
+                      <button
+                        onClick={(e) => openEditModal(e, item)}
+                        className="btn-action-edit"
+                        title="Edit"
+                      >
+                        <Edit2 size={16} />
+                      </button>
+                      <button
+                        onClick={(e) => handleDelete(e, item.id)}
+                        className="btn-action-delete"
+                        title="Delete"
+                      >
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                   </div>
-                )}
-              </div>
-            );
-          })}
+
+                  {/* Accordion Body */}
+                  {isExpanded && (
+                    <div
+                      className="accordion-body"
+                      style={{
+                        padding: "16px",
+                        borderTop: "1px solid #e2e8f0",
+                      }}
+                    >
+                      <div className="card-body">
+                        <pre
+                          className="sql-preview"
+                          style={{
+                            background: "#0f172a",
+                            color: "#f8fafc",
+                            padding: "16px",
+                            borderRadius: "6px",
+                            overflowX: "auto",
+                            margin: 0,
+                          }}
+                        >
+                          <code>{item.query}</code>
+                        </pre>
+                      </div>
+                      <div
+                        className="card-footer"
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          marginTop: "12px",
+                          fontSize: "0.85rem",
+                          color: "#64748b",
+                        }}
+                      >
+                        <span>By: {item.create_by}</span>
+                        <span>
+                          {new Date(item.create_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </div>
       )}
 
@@ -468,7 +478,9 @@ export const QueryUtilities: React.FC = () => {
                 <input
                   type="text"
                   value={form.hos_use}
-                  onChange={(e) => setForm({ ...form, hos_use: e.target.value })}
+                  onChange={(e) =>
+                    setForm({ ...form, hos_use: e.target.value })
+                  }
                   placeholder="e.g. HOS-01"
                 />
               </div>
