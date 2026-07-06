@@ -87,8 +87,8 @@ function App() {
               setUser(newProfile);
             }
           } else {
-            console.error("Error fetching user profile:", error);
             // setUser({ id: authUserId, email, role: 'support' }); // Fallback
+            return
           }
         } else if (profile) {
           setUser(profile);
@@ -105,7 +105,6 @@ function App() {
     // Listen to Supabase Auth State Changes
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
-      console.log("Initial session check:", currentUser);
       if (currentUser) {
         syncUserProfile(currentUser.id, currentUser.email || "");
       } else {
