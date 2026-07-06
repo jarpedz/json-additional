@@ -61,8 +61,6 @@ function App() {
           .eq("id", authUserId)
           .single();
 
-        console.log("Fetched profile:", profile, "Error:", error);
-
         if (error) {
           // If no profile exists, automatically provision one with a default 'support' role
           if (error.code === "PGRST116") {

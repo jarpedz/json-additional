@@ -23,7 +23,6 @@ export const Dashboard: React.FC = () => {
 
         setQueriesCount(queriesRes.count);
         setNotesCount(notesRes.count);
-        console.log(role.split(",").map((r: string) => r.trim()));
       } catch (err) {
         console.error("Error fetching dashboard metrics:", err);
       } finally {
