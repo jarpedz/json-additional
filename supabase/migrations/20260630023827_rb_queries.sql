@@ -4,7 +4,6 @@
 CREATE TABLE tb_users (
     id TEXT PRIMARY KEY NOT NULL,
     email TEXT NOT NULL UNIQUE,
-    username TEXT NOT NULL UNIQUE,
     role TEXT NOT NULL,
     create_by TEXT NOT NULL DEFAULT 'system',
     create_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(), -- แก้ไขจาก datatime timestamp(now())

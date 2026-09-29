@@ -12,10 +12,18 @@ export const Login: React.FC = () => {
     e.preventDefault();
     setError(null);
 
-    const result = await signIn(email, password);
-
-    console.log(result);
-
+    try {
+      await signIn(email, password);
+    } catch (err) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else if (typeof err === "object" && err !== null && "message" in err) {
+        // Supabase PostgrestError is a plain object, not an Error instance
+        setError(String((err as { message: string }).message));
+      } else {
+        setError("Failed to sign in. Please try again.");
+      }
+    }
   };
 
   return (

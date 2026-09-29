@@ -34,13 +34,19 @@ export const Dashboard: React.FC = () => {
   }, []);
 
   const displayRole = role || "loading...";
-  // const roleClass = role === "deployer" ? "role-deployer" : "role-support";
 
-  // const displayisRole = (role: string) => {
-  //   const isRole = JSON.parse(role)
-  //   console.log(isRole)
-  //   return isRole.join(', ');
-  // }
+  const hasRole = (target: string) => {
+    if (!role) return false;
+    return role
+      .split(",")
+      .map((r: string) => r.trim())
+      .includes(target);
+  };
+
+  const roleBadges = displayRole
+    .split(",")
+    .map((r: string) => r.trim())
+    .filter(Boolean);
 
   return (
     <div className="dashboard-container">
@@ -57,7 +63,7 @@ export const Dashboard: React.FC = () => {
           </div>
           <div className="role-tag-container">
             <span>Your System Role:</span>
-            {displayRole.split().map((r: string, index: number) => (
+            {roleBadges.map((r: string, index: number) => (
               <span
                 key={index}
                 className={`badge-role ${r === "deploy" ? "role-deployer" : "role-support"}`}
@@ -65,7 +71,6 @@ export const Dashboard: React.FC = () => {
                 {r}
               </span>
             ))}
-            {/* <span className={`badge-role ${roleClass}`}>{displayRole.split(",").join(", ")}</span> */}
           </div>
         </div>
       </div>
@@ -120,13 +125,13 @@ export const Dashboard: React.FC = () => {
           <p className="metric-desc">
             Compare environment configs side-by-side.
           </p>
-          {role === "deployer" ? (
+          {hasRole("deploy") ? (
             <a href="#json-comparator" className="metric-action-btn">
               Open Comparator →
             </a>
           ) : (
             <span className="metric-action-locked">
-              🔒 Deployer Role Required
+              🔒 Deploy Role Required
             </span>
           )}
         </div>
@@ -143,7 +148,7 @@ export const Dashboard: React.FC = () => {
             <h4>Log Notes</h4>
             <p>Write notes, descriptions, and updates for deployments.</p>
           </a>
-          {role === "deployer" && (
+          {hasRole("deploy") && (
             <a href="#json-comparator" className="shortcut-item">
               <h4>JSON Config Comparator</h4>
               <p>Compare config-prd.json vs local configuration keys.</p>

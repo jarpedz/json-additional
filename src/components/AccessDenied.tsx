@@ -10,7 +10,7 @@ export const AccessDenied: React.FC = () => {
         <p>You do not have permission to access the JSON Comparator.</p>
         <div className="role-requirement">
           <span>Required Role:</span>
-          <span className="badge-required">deployer</span>
+          <span className="badge-required">deploy</span>
         </div>
         <p className="contact-admin">
           If you believe this is an error, please contact your administrator to update your role in the system.

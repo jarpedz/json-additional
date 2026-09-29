@@ -19,8 +19,7 @@ import "./App.css";
 import { sqlData } from "./snippets";
 
 function App() {
-  const { user, setUser, initialized, setInitialized, signOut , initAuthListener} =
-    useAuthStore();
+  const { user, initialized, signOut, initAuthListener } = useAuthStore();
   const [currentRoute, setCurrentRoute] = useState("dashboard");
   const role = user?.role;
 
@@ -41,91 +40,14 @@ function App() {
   }, []);
 
   useEffect(() => {
-    // Initialize Auth Listener for Session Changes
+    // Single auth listener (session/token/profile) — lives in useAuthStore
     const unsubscribe = initAuthListener();
-    
+
     // Cleanup on unmount
     return () => {
       unsubscribe();
     };
   }, [initAuthListener]);
-
-  // Fetch or Provision Profile on Load / Session Change
-  useEffect(() => {
-    const syncUserProfile = async (authUserId: string, email: string) => {
-      try {
-        // Fetch existing user profile from tb_users
-        const { data: profile, error } = await supabase
-          .from("tb_users")
-          .select("*")
-          .eq("id", authUserId)
-          .single();
-
-        if (error) {
-          // If no profile exists, automatically provision one with a default 'support' role
-          if (error.code === "PGRST116") {
-            const { data: newProfile, error: insertError } = await supabase
-              .from("tb_users")
-              .insert({
-                id: authUserId,
-                email: email,
-                role: "support",
-                create_by: "system",
-              })
-              .select("*")
-              .single();
-
-            if (insertError) {
-              console.error(
-                "Error auto-provisioning user profile:",
-                insertError,
-              );
-              // setUser({ id: authUserId, email, role: 'support' });
-            } else if (newProfile) {
-              setUser(newProfile);
-            }
-          } else {
-            // setUser({ id: authUserId, email, role: 'support' }); // Fallback
-            return
-          }
-        } else if (profile) {
-          setUser(profile);
-        }
-      } catch (err) {
-        console.error("Exception syncing user profile:", err);
-        // setUser({ id: authUserId, email, role: 'support' }); // Fallback
-      } finally {
-        useAuthStore.setState({ loading: false });
-        setInitialized(true);
-      }
-    };
-
-    // Listen to Supabase Auth State Changes
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const currentUser = session?.user ?? null;
-      if (currentUser) {
-        syncUserProfile(currentUser.id, currentUser.email || "");
-      } else {
-        setUser(null);
-        useAuthStore.setState({ loading: false });
-        setInitialized(true);
-      }
-    });
-
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      const currentUser = session?.user ?? null;
-      if (currentUser) {
-        syncUserProfile(currentUser.id, currentUser.email || "");
-      } else {
-        setUser(null);
-        useAuthStore.setState({ loading: false });
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [setUser, setInitialized]);
 
   if (!initialized) {
     return <div className="loading">Initializing...</div>;
